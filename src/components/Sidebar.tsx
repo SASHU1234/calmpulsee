@@ -1,14 +1,18 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { TABS } from "./BottomNav";
+import { useAuth } from "./AuthProvider";
 
 interface SidebarProps {
     theme: string;
     onThemeToggle: () => void;
 }
 
-export default function Sidebar({ theme, onThemeToggle }: SidebarProps) {
+export default function Sidebar({ }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
+    const { logout, session } = useAuth();
+    const [showAccountMenu, setShowAccountMenu] = useState(false);
 
     return (
         <aside className="sidebar">
@@ -47,7 +51,7 @@ export default function Sidebar({ theme, onThemeToggle }: SidebarProps) {
                 })}
             </nav>
 
-            {/* Bottom — help + theme */}
+            {/* Bottom — help + account */}
             <div className="sidebar-bottom">
                 <button
                     className="sidebar-help"
@@ -57,23 +61,76 @@ export default function Sidebar({ theme, onThemeToggle }: SidebarProps) {
                     <span className="sidebar-label">Need Help?</span>
                 </button>
 
-                <button
-                    onClick={onThemeToggle}
-                    style={{
-                        color: "var(--text-muted)",
-                        fontSize: "18px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "36px",
-                        width: "36px",
-                        borderRadius: "8px",
-                        transition: "all var(--duration-fast)"
-                    }}
-                    title="Toggle theme"
-                >
-                    {theme === "dark" ? "☀️" : "🌙"}
-                </button>
+                <div style={{ position: "relative" }}>
+                    {showAccountMenu && (
+                        <>
+                            <div 
+                                style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                                onClick={() => setShowAccountMenu(false)}
+                            />
+                            <div style={{
+                                position: "absolute",
+                                bottom: "100%",
+                                left: 0,
+                                marginBottom: "8px",
+                                backgroundColor: "var(--surface)",
+                                border: "1px solid var(--border)",
+                                borderRadius: "8px",
+                                padding: "4px",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                                zIndex: 10,
+                                minWidth: "140px"
+                            }}>
+                                <div style={{ 
+                                    padding: "8px 12px", 
+                                    borderBottom: "1px solid var(--border)",
+                                    marginBottom: "4px"
+                                }}>
+                                    <div style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>Logged in as</div>
+                                    <div className="font-mono" style={{ fontSize: "var(--text-xs)", color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                        {session?.authMethod === "anon" ? "Anonymous" : session?.displayName || session?.email || "User"}
+                                    </div>
+                                </div>
+                                <button
+                                    className="sidebar-item"
+                                    onClick={async () => {
+                                        setShowAccountMenu(false);
+                                        await logout();
+                                        navigate("/");
+                                    }}
+                                    style={{
+                                        width: "100%",
+                                        color: "var(--danger)",
+                                        justifyContent: "flex-start",
+                                        padding: "8px 12px",
+                                        height: "auto",
+                                        marginTop: "4px"
+                                    }}
+                                >
+                                    Log out
+                                </button>
+                            </div>
+                        </>
+                    )}
+                    <button
+                        onClick={() => setShowAccountMenu(!showAccountMenu)}
+                        style={{
+                            color: "var(--text-muted)",
+                            fontSize: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "36px",
+                            width: "36px",
+                            borderRadius: "8px",
+                            transition: "all var(--duration-fast)",
+                            backgroundColor: showAccountMenu ? "var(--surface)" : "transparent"
+                        }}
+                        title="Account"
+                    >
+                        <span>👤</span>
+                    </button>
+                </div>
             </div>
         </aside>
     );

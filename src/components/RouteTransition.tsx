@@ -4,10 +4,8 @@ import { useLocation } from "react-router-dom";
 export default function RouteTransition({ children }: { children: React.ReactNode }) {
     const location = useLocation();
     const [displayLocation, setDisplayLocation] = useState(location);
-    const [transitionStage, setTransitionStage] = useState("idle"); // idle, entering, leaving
     const [direction, setDirection] = useState("forward");
 
-    const locRef = useRef(location.pathname);
     const pathHistory = useRef<string[]>([location.pathname]);
 
     useEffect(() => {
@@ -22,16 +20,10 @@ export default function RouteTransition({ children }: { children: React.ReactNod
             }
 
             setDirection(isBack ? "backward" : "forward");
-            setTransitionStage("leaving");
 
             // Set timeout for animation duration
             const timer = setTimeout(() => {
                 setDisplayLocation(location);
-                setTransitionStage("entering");
-
-                setTimeout(() => {
-                    setTransitionStage("idle");
-                }, 50); // slight delay for browser to apply "entering" frame before taking it off if needed, but CSS handles it
             }, 0); // Quick unmount logic can be modified, but actually we need both on screen if we want simultaneously sliding.
 
             return () => clearTimeout(timer);

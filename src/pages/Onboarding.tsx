@@ -2,31 +2,35 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import { generatePassphrase, savePassphrase } from "../utils/passphrase";
+import { useAuth } from "../components/AuthProvider";
 
 // ─── Restore bottom sheet ────────────────────────────────────────
 function RestoreSheet({ onClose }: { onClose: () => void }) {
     const navigate = useNavigate();
+    const { loginWithPassphrase } = useAuth();
     const [phrase, setPhrase] = useState("");
+
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-    const handleRestore = () => {
+    const handleRestore = async () => {
         if (!phrase.trim()) return;
         setStatus("loading");
-        setTimeout(() => {
-            // Mock: any 4-word dash-separated phrase succeeds
-            const words = phrase.trim().split("-").filter(Boolean);
-            if (words.length === 4) {
+        try {
+            const result = await loginWithPassphrase(phrase.trim().toLowerCase());
+            if (result.success) {
                 setStatus("success");
                 setTimeout(() => {
                     localStorage.setItem("calmpulse-onboarded", "true");
-                    localStorage.setItem("calmpulse-passphrase", phrase.trim());
                     navigate("/app/home");
                 }, 1200);
             } else {
                 setStatus("error");
                 setTimeout(() => setStatus("idle"), 2000);
             }
-        }, 1500);
+        } catch {
+            setStatus("error");
+            setTimeout(() => setStatus("idle"), 2000);
+        }
     };
 
     // Trap focus inside sheet
@@ -145,7 +149,7 @@ function RestoreSheet({ onClose }: { onClose: () => void }) {
 // ─── Main Onboarding ─────────────────────────────────────────────
 export default function Onboarding() {
     const navigate = useNavigate();
-
+    const { session, loginWithGoogle: authGoogleLogin, createAnonSession } = useAuth();
     // Steps: 0=consent, 1=welcome, 2=recovery-key, 3=mood, 4=needs
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -163,26 +167,35 @@ export default function Onboarding() {
 
     // Generate passphrase on mount (only once)
     useEffect(() => {
-        const existing = localStorage.getItem("calmpulse-passphrase");
-        if (!existing) {
-            setPassphrase(generatePassphrase());
+        // If user already has a passphrase from auth, use it
+        if (session?.passphrase) {
+            setPassphrase(session.passphrase);
         } else {
-            setPassphrase(existing);
+            const existing = localStorage.getItem("calmpulse-passphrase");
+            if (!existing) {
+                setPassphrase(generatePassphrase());
+            } else {
+                setPassphrase(existing);
+            }
         }
-    }, []);
+    }, [session]);
 
-    const handleComplete = () => {
+    const handleComplete = async () => {
         setLoading(true);
         savePassphrase(passphrase);
+        // If not already an anon session, create one
+        if (!session || session.authMethod !== "anon") {
+            await createAnonSession(passphrase);
+        }
         localStorage.setItem("calmpulse-onboarded", "true");
-        setTimeout(() => navigate("/app/home"), 800);
+        navigate("/app/home");
     };
 
     const handleGoogleSignIn = () => {
         setLoading(true);
         setTimeout(() => {
+            authGoogleLogin();
             localStorage.setItem("calmpulse-onboarded", "true");
-            localStorage.setItem("calmpulse-id", "GOOGLE-USER");
             navigate("/app/home");
         }, 1200);
     };

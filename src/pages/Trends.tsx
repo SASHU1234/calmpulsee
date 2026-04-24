@@ -2,23 +2,29 @@ import { useState, useEffect } from "react";
 import { detectPattern } from "../services/ai";
 import BackButton from "../components/BackButton";
 import { useNavigationContext } from "../components/NavigationProvider";
+import { useLogs } from "../components/LogsProvider";
 
 export default function Trends() {
     const { previousScreenName } = useNavigationContext();
+    const { logs, isLoading } = useLogs();
     const [range, setRange] = useState("30D");
-    const [logs, setLogs] = useState<any[]>([]);
     const [insight, setInsight] = useState("");
 
     useEffect(() => {
-        const data = JSON.parse(localStorage.getItem("calmpulse-logs") || "[]");
-        setLogs(data);
-
-        if (data.length > 0) {
-            detectPattern(data).then(res => setInsight(res.insight));
+        if (logs.length > 0) {
+            detectPattern(logs).then(res => setInsight(res.insight));
         }
-    }, []);
+    }, [logs]);
 
     const RANGES = ["7D", "30D", "90D", "All"];
+
+    if (isLoading) {
+        return (
+            <div style={{ height: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "var(--accent)", animation: "pulse 0.8s infinite ease-in-out" }} />
+            </div>
+        );
+    }
 
     if (logs.length === 0) {
         return (

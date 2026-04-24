@@ -30,3 +30,51 @@ export function savePassphrase(passphrase: string): void {
 export function getPassphrase(): string | null {
     return localStorage.getItem("calmpulse-passphrase");
 }
+
+// ─── Passphrase-namespaced data helpers ───────────────────────────
+
+const PASSPHRASE_REGISTRY = "calmpulse-passphrases";
+
+/** Check if a passphrase has been registered */
+export function passphraseExists(passphrase: string): boolean {
+    const registry: string[] = JSON.parse(localStorage.getItem(PASSPHRASE_REGISTRY) || "[]");
+    return registry.includes(passphrase.trim().toLowerCase());
+}
+
+/** Create an empty data profile for a new passphrase */
+export function createUserProfile(passphrase: string): void {
+    const dataKey = `calmpulse-data-${passphrase}`;
+    if (!localStorage.getItem(dataKey)) {
+        localStorage.setItem(dataKey, JSON.stringify({
+            logs: [],
+            createdAt: new Date().toISOString(),
+        }));
+    }
+}
+
+/** Get the full user profile for a passphrase, or null if not found */
+export function getUserProfile(passphrase: string): Record<string, any> | null {
+    const dataKey = `calmpulse-data-${passphrase}`;
+    const raw = localStorage.getItem(dataKey);
+    if (!raw) return null;
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return null;
+    }
+}
+
+/** Save a specific piece of data under a passphrase namespace */
+export function saveUserData(passphrase: string, key: string, data: any): void {
+    const profile = getUserProfile(passphrase) || { logs: [], createdAt: new Date().toISOString() };
+    profile[key] = data;
+    const dataKey = `calmpulse-data-${passphrase}`;
+    localStorage.setItem(dataKey, JSON.stringify(profile));
+}
+
+/** Read a specific piece of data from a passphrase namespace */
+export function getUserData(passphrase: string, key: string): any {
+    const profile = getUserProfile(passphrase);
+    if (!profile) return null;
+    return profile[key] ?? null;
+}

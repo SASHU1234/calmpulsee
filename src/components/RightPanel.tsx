@@ -1,23 +1,35 @@
 import { useLocation } from "react-router-dom";
+import { useLogs } from "./LogsProvider";
 
 export default function RightPanel() {
     const location = useLocation();
     const path = location.pathname;
+    const { streak, weeklyStatus, logs } = useLogs();
+    
+    const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
     const panels: Record<string, React.ReactNode> = {
         "/app/home": (
             <>
                 <PanelCard title="This week">
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "8px" }}>
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].slice(0, 6).map((d, i) => (
-                            <div key={d} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                <span className="font-mono" style={{ fontSize: "10px", color: "var(--text-muted)", width: "28px" }}>{d}</span>
-                                <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: i > 2 ? "var(--warning)" : "var(--border)" }} />
-                            </div>
-                        ))}
+                        {dayLabels.map((d, i) => {
+                            const isToday = new Date().getDay() - 1 === i || (new Date().getDay() === 0 && i === 6);
+                            const isActive = weeklyStatus[i];
+                            let bg = "var(--border)";
+                            if (isActive) bg = "var(--warning)";
+                            else if (isToday) bg = "transparent";
+                            const matchBorder = isToday && !isActive ? "2px solid var(--accent)" : "none";
+                            return (
+                                <div key={d} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <span className="font-mono" style={{ fontSize: "10px", color: "var(--text-muted)", width: "28px" }}>{d}</span>
+                                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: bg, border: matchBorder }} />
+                                </div>
+                            );
+                        })}
                     </div>
                     <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span className="font-mono" style={{ fontSize: "var(--text-xl)", color: "var(--accent)", fontWeight: "bold" }}>6</span>
+                        <span className="font-mono" style={{ fontSize: "var(--text-xl)", color: "var(--accent)", fontWeight: "bold" }}>{streak}</span>
                         <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>day streak</span>
                     </div>
                 </PanelCard>
@@ -78,7 +90,7 @@ export default function RightPanel() {
         "/app/you": (
             <PanelCard title="Data summary">
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
-                    {[["Total logs", "42"], ["Streak", "6 days"], ["Assessments", "3"]].map(([label, val]) => (
+                    {[["Total logs", logs.length.toString()], ["Streak", `${streak} days`], ["Assessments", "3"]].map(([label, val]) => (
                         <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>{label}</span>
                             <span className="font-mono" style={{ fontSize: "var(--text-sm)", color: "var(--accent)", fontWeight: "bold" }}>{val}</span>

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../components/AuthProvider";
 
 const FEATURES = [
     {
@@ -36,6 +37,7 @@ const FEATURES = [
 
 export default function Landing() {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
 
     // Scroll reveal
     useEffect(() => {
@@ -61,7 +63,7 @@ export default function Landing() {
         document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const openApp = () => navigate("/app/home");
+    const openApp = () => navigate(isAuthenticated ? "/app/home" : "/login");
 
     return (
         <div className="landing-root">

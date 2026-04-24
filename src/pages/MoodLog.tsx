@@ -2,9 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { analyzeEntry } from "../services/ai";
 import BackButton from "../components/BackButton";
+import { useAuth } from "../components/AuthProvider";
+import { saveLog } from "../services/db";
+import { useLogs } from "../components/LogsProvider";
 
 export default function MoodLog() {
     const navigate = useNavigate();
+    const { session } = useAuth();
+    const { refreshLogs } = useLogs();
     const [mood, setMood] = useState<{ label: string, emoji: string, color: string } | null>(null);
     const [intensity, setIntensity] = useState(5);
     const [tags, setTags] = useState<string[]>([]);
@@ -38,8 +43,12 @@ export default function MoodLog() {
             aiAnalysis: result
         };
 
-        const logs = JSON.parse(localStorage.getItem("calmpulse-logs") || "[]");
-        localStorage.setItem("calmpulse-logs", JSON.stringify([entry, ...logs]));
+        if (session?.userId) {
+            await saveLog(session.userId, entry);
+            await refreshLogs();
+        } else {
+            console.error("No active user session to save log");
+        }
 
         setSaving(false);
         setSaved(true);

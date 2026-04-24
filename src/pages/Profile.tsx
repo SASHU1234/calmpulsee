@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../components/AuthProvider";
 
 export default function Profile() {
     const [theme, setTheme] = useState(localStorage.getItem("calmpulse-theme") || "dark");
@@ -7,8 +8,12 @@ export default function Profile() {
     const [clearText, setClearText] = useState("");
     const [showClear, setShowClear] = useState(false);
     const [dailyRem, setDailyRem] = useState(true);
+    const [phraseCopied, setPhraseCopied] = useState(false);
+    const { session, logout } = useAuth();
+    const navigate = useNavigate();
 
-    const anonymousId = localStorage.getItem("calmpulse-id") || "WAIT-INGG";
+    const anonymousId = session?.userId || localStorage.getItem("calmpulse-id") || "WAIT-INGG";
+    const authLabel = session?.authMethod === "google" ? "Google" : session?.authMethod === "email" ? "Email" : "Anonymous";
 
     const handleTheme = (t: string) => {
         setTheme(t);
@@ -25,8 +30,23 @@ export default function Profile() {
 
     const handleClear = () => {
         if (clearText === "CLEAR") {
+            logout();
             localStorage.clear();
             window.location.href = "/";
+        }
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate("/");
+    };
+
+    const handleCopyPassphrase = () => {
+        if (session?.passphrase) {
+            navigator.clipboard.writeText(session.passphrase).then(() => {
+                setPhraseCopied(true);
+                setTimeout(() => setPhraseCopied(false), 2000);
+            });
         }
     };
 
@@ -39,11 +59,52 @@ export default function Profile() {
             {/* Identity */}
             <section style={{ marginBottom: "40px" }}>
                 <div className="card-base" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <h3 className="font-mono" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", textTransform: "uppercase" }}>Your anonymous ID</h3>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <h3 className="font-mono" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", textTransform: "uppercase" }}>Your {authLabel} ID</h3>
+                        <span className="chip" style={{ height: "24px", fontSize: "10px", borderColor: "var(--accent)", color: "var(--accent)" }}>{authLabel}</span>
+                    </div>
                     <div className="font-mono" style={{ fontSize: "var(--text-xl)", color: "var(--accent)" }}>{anonymousId}</div>
-                    <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>Local to this device only.</p>
+                    {session?.email && (
+                        <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>{session.email}</p>
+                    )}
+                    {!session?.email && (
+                        <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>Local to this device only.</p>
+                    )}
                 </div>
             </section>
+
+            {/* Passphrase (anon users only) */}
+            {session?.authMethod === "anon" && session.passphrase && (
+                <section style={{ marginBottom: "40px" }}>
+                    <h3 className="font-mono" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>Your recovery passphrase</h3>
+                    <div className="card-base" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        <div className="font-mono" style={{
+                            fontSize: "var(--text-md)", color: "var(--accent)",
+                            letterSpacing: "0.04em", textAlign: "center",
+                            padding: "8px 0"
+                        }}>
+                            {session.passphrase}
+                        </div>
+                        <button
+                            onClick={handleCopyPassphrase}
+                            style={{
+                                height: "36px", borderRadius: "10px",
+                                backgroundColor: phraseCopied ? "var(--accent-dim)" : "var(--card)",
+                                border: `1px solid ${phraseCopied ? "var(--accent)" : "var(--border)"}`,
+                                color: phraseCopied ? "var(--accent)" : "var(--text)",
+                                fontFamily: "'Epilogue', sans-serif",
+                                fontSize: "var(--text-sm)", fontWeight: 500,
+                                cursor: "pointer", transition: "all var(--duration-fast)"
+                            }}
+                        >
+                            {phraseCopied ? "Copied ✓" : "📋 Copy passphrase"}
+                        </button>
+                        <p className="font-mono" style={{ fontSize: "10px", color: "var(--danger)", lineHeight: 1.5 }}>
+                            Save this somewhere safe. It's the only way to restore your data.
+                        </p>
+                    </div>
+                </section>
+            )}
 
             {/* Milestones */}
             <section style={{ marginBottom: "40px" }}>
@@ -145,6 +206,21 @@ export default function Profile() {
             </section>
 
             <section style={{ textAlign: "center", marginBottom: "40px" }}>
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        width: "100%", height: "48px", borderRadius: "12px",
+                        backgroundColor: "transparent",
+                        border: "1.5px solid var(--border)",
+                        color: "var(--text-muted)",
+                        fontFamily: "'Epilogue', sans-serif",
+                        fontSize: "var(--text-sm)", fontWeight: 500,
+                        cursor: "pointer", transition: "all var(--duration-fast)",
+                        marginBottom: "16px"
+                    }}
+                >
+                    Log out
+                </button>
                 <div className="font-mono" style={{ fontSize: "10px", color: "var(--text-muted)", margin: "16px 0" }}>CalmPulse v2.0.0</div>
                 <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
                     <span className="btn-text" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", cursor: "pointer" }}>What's new</span>

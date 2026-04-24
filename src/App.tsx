@@ -4,6 +4,7 @@ import {
 } from "react-router-dom";
 
 import Landing from "./pages/Landing";
+import Login from "./pages/Login";
 import Splash from "./pages/Splash";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/Home";
@@ -22,6 +23,19 @@ import Sidebar from "./components/Sidebar";
 import RightPanel from "./components/RightPanel";
 import { NavigationProvider } from "./components/NavigationProvider";
 import DevPreview from "./components/DevPreview";
+import { AuthProvider, useAuth } from "./components/AuthProvider";
+import { LogsProvider } from "./components/LogsProvider";
+
+// ─── Auth Guard ─────────────────────────────────────────────────
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 // ─── App Layout (the /app/* shell) ──────────────────────────────
 function AppLayout({ theme, onThemeToggle }: { theme: string; onThemeToggle: () => void }) {
@@ -113,12 +127,17 @@ function Root() {
       {/* Landing page */}
       <Route path="/" element={<Landing />} />
 
+      {/* Login page */}
+      <Route path="/login" element={<Login />} />
+
       {/* Splash / legacy entry */}
       <Route path="/splash" element={<Splash />} />
 
-      {/* The app shell — all /app/* routes */}
+      {/* The app shell — all /app/* routes — PROTECTED */}
       <Route path="/app/*" element={
-        <AppLayout theme={theme} onThemeToggle={toggleTheme} />
+        <RequireAuth>
+          <AppLayout theme={theme} onThemeToggle={toggleTheme} />
+        </RequireAuth>
       } />
 
       {/* Redirect old paths that didn't have /app prefix */}
@@ -138,9 +157,13 @@ function Root() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Root />
-      {/* Dev preview panel — only renders in development */}
-      {import.meta.env.DEV && <DevPreview />}
+      <AuthProvider>
+        <LogsProvider>
+          <Root />
+          {/* Dev preview panel — only renders in development */}
+          {import.meta.env.DEV && <DevPreview />}
+        </LogsProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

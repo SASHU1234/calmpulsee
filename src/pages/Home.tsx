@@ -1,14 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useLogs } from "../components/LogsProvider";
 
 export default function Home() {
     const [theme, setTheme] = useState(localStorage.getItem("calmpulse-theme") || "dark");
-    const [lastEntry, setLastEntry] = useState<any>(null);
-
-    useEffect(() => {
-        const logs = JSON.parse(localStorage.getItem("calmpulse-logs") || "[]");
-        if (logs.length > 0) setLastEntry(logs[0]);
-    }, []);
+    const { streak, weeklyStatus, lastEntry } = useLogs();
 
     const toggleTheme = () => {
         const next = theme === "dark" ? "light" : "dark";
@@ -39,7 +35,7 @@ export default function Home() {
             <section style={{ marginBottom: "40px" }}>
                 <h2 className="font-display" style={{ fontSize: "var(--text-2xl)", marginBottom: "8px" }}>{greeting}</h2>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>
-                    <span className="font-mono" style={{ color: "var(--accent)", fontWeight: "bold" }}>6</span> days in a row · Keep going
+                    <span className="font-mono" style={{ color: "var(--accent)", fontWeight: "bold" }}>{streak}</span> {streak === 1 ? "day" : "days"} in a row · {streak > 0 ? "Keep going!" : "Time to start!"}
                 </div>
             </section>
 
@@ -71,16 +67,29 @@ export default function Home() {
 
             {/* Weekly Mood Strip */}
             <section style={{ marginBottom: "40px", display: "flex", justifyContent: "space-between" }}>
-                {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                    <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "36px" }}>
-                        <span className="font-mono" style={{ fontSize: "var(--text-xs)", color: i === 6 ? "var(--text)" : "var(--text-muted)" }}>{d}</span>
-                        <div style={{
-                            width: "12px", height: "12px", borderRadius: "50%",
-                            backgroundColor: i === 6 ? "transparent" : i > 2 ? "var(--warning)" : "var(--border)",
-                            border: i === 6 ? "2px solid var(--accent)" : "none"
-                        }} />
-                    </div>
-                ))}
+                {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => {
+                    const today = new Date().getDay();
+                    const currentIdx = today === 0 ? 6 : today - 1;
+                    const isActive = weeklyStatus[i];
+                    
+                    let bg = "var(--border)"; // default inactive/future
+                    if (isActive) {
+                        bg = "var(--warning)"; // logged day (matches original style color)
+                    } else if (i === currentIdx) {
+                        bg = "transparent"; // today unlogged is empty bordered circle
+                    }
+
+                    return (
+                        <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", width: "36px" }}>
+                            <span className="font-mono" style={{ fontSize: "var(--text-xs)", color: i === currentIdx ? "var(--text)" : "var(--text-muted)" }}>{d}</span>
+                            <div style={{
+                                width: "12px", height: "12px", borderRadius: "50%",
+                                backgroundColor: bg,
+                                border: i === currentIdx && !isActive ? "2px solid var(--accent)" : "none"
+                            }} />
+                        </div>
+                    );
+                })}
             </section>
 
             {/* Quick Actions */}
