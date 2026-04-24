@@ -64,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Firebase Auth State Listener
     useEffect(() => {
+        if (!auth) return;
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 const s: Session = {
@@ -98,6 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // ── Google Login (Firebase) ───────────────────────────────────
     const loginWithGoogle = async () => {
+        if (!auth || !googleProvider) {
+            alert("Google Login is not configured. Please check environment variables.");
+            return;
+        }
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
@@ -189,10 +194,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = async () => {
-        try {
-            await firebaseSignOut(auth);
-        } catch (error) {
-            console.error("Error signing out of Firebase", error);
+        if (auth) {
+            try {
+                await firebaseSignOut(auth);
+            } catch (error) {
+                console.error("Error signing out of Firebase", error);
+            }
         }
         logoutLocal();
     };
