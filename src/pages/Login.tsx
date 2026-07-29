@@ -29,14 +29,15 @@ export default function Login() {
 
     // ── Handlers ──────────────────────────────────────────────────
 
-    const handleGoogle = () => {
+    const handleGoogle = async () => {
         setLoading(true);
-        // Simulate async
-        setTimeout(() => {
-            loginWithGoogle();
+        const ok = await loginWithGoogle();
+        if (ok) {
             localStorage.setItem("calmpulse-onboarded", "true");
             navigate("/app/home");
-        }, 800);
+        } else {
+            setLoading(false);
+        }
     };
 
     const handleEmail = () => {

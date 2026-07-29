@@ -17,7 +17,7 @@ interface Session {
 interface AuthContextValue {
     isAuthenticated: boolean;
     session: Session | null;
-    loginWithGoogle: () => void;
+    loginWithGoogle: () => Promise<boolean>;
     loginWithEmail: (email: string) => { success: boolean; error?: string };
     createAnonSession: (passphrase: string) => void;
     loginWithPassphrase: (passphrase: string) => Promise<{ success: boolean; error?: string }>;
@@ -29,7 +29,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
     isAuthenticated: false,
     session: null,
-    loginWithGoogle: () => {},
+    loginWithGoogle: async () => false,
     loginWithEmail: () => ({ success: false }),
     createAnonSession: () => {},
     loginWithPassphrase: async () => ({ success: false }),
@@ -98,10 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     // ── Google Login (Firebase) ───────────────────────────────────
-    const loginWithGoogle = async () => {
+    const loginWithGoogle = async (): Promise<boolean> => {
         if (!auth || !googleProvider) {
-            alert("Google Login is not configured. Please check environment variables.");
-            return;
+            alert("Google Login is not configured. Please check environment variables in Vercel.");
+            return false;
         }
         try {
             const result = await signInWithPopup(auth, googleProvider);
@@ -114,8 +114,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
             localStorage.setItem("calmpulse-id", s.userId);
             persistSession(s);
+            return true;
         } catch (error) {
             console.error("Google Sign-In failed", error);
+            return false;
         }
     };
 
