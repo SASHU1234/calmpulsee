@@ -12,6 +12,7 @@ export default function Login() {
 
     const [view, setView] = useState<View>("main");
     const [loading, setLoading] = useState(false);
+    const [googleError, setGoogleError] = useState("");
 
     // Email state
     const [email, setEmail] = useState("");
@@ -30,12 +31,14 @@ export default function Login() {
     // ── Handlers ──────────────────────────────────────────────────
 
     const handleGoogle = async () => {
+        setGoogleError("");
         setLoading(true);
-        const ok = await loginWithGoogle();
-        if (ok) {
+        const result = await loginWithGoogle();
+        if (result.success) {
             localStorage.setItem("calmpulse-onboarded", "true");
             navigate("/app/home");
         } else {
+            setGoogleError(result.error || "An unknown error occurred.");
             setLoading(false);
         }
     };
@@ -179,6 +182,15 @@ export default function Login() {
                             </svg>
                             Continue with Google
                         </button>
+
+                        {googleError && (
+                            <p className="font-mono" style={{
+                                fontSize: "var(--text-xs)", color: "var(--danger)",
+                                marginTop: "8px", marginBottom: "0", textAlign: "center", lineHeight: 1.4
+                            }}>
+                                {googleError}
+                            </p>
+                        )}
 
                         {/* Email */}
                         <button

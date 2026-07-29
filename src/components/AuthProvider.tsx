@@ -17,7 +17,7 @@ interface Session {
 interface AuthContextValue {
     isAuthenticated: boolean;
     session: Session | null;
-    loginWithGoogle: () => Promise<boolean>;
+    loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
     loginWithEmail: (email: string) => { success: boolean; error?: string };
     createAnonSession: (passphrase: string) => void;
     loginWithPassphrase: (passphrase: string) => Promise<{ success: boolean; error?: string }>;
@@ -29,7 +29,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
     isAuthenticated: false,
     session: null,
-    loginWithGoogle: async () => false,
+    loginWithGoogle: async () => ({ success: false, error: "Not initialized" }),
     loginWithEmail: () => ({ success: false }),
     createAnonSession: () => {},
     loginWithPassphrase: async () => ({ success: false }),
@@ -97,11 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(s);
     };
 
-    // ── Google Login (Firebase) ───────────────────────────────────
-    const loginWithGoogle = async (): Promise<boolean> => {
+    const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
         if (!auth || !googleProvider) {
-            alert("Google Login is not configured. Please check environment variables in Vercel.");
-            return false;
+            return { success: false, error: "Google Login is not configured. Missing Firebase API keys in Vercel environment variables." };
         }
         try {
             const result = await signInWithPopup(auth, googleProvider);
@@ -114,10 +112,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
             localStorage.setItem("calmpulse-id", s.userId);
             persistSession(s);
-            return true;
-        } catch (error) {
+            return { success: true };
+        } catch (error: any) {
             console.error("Google Sign-In failed", error);
-            return false;
+            let msg = error.message || "Unknown error occurred.";
+            if (error.code === 'auth/unauthorized-domain') {
+                msg = "Domain unauthorized. Add this Vercel domain in Firebase Console -> Authentication -> Settings -> Authorized Domains.";
+            } else if (error.code === 'auth/popup-closed-by-user') {
+                msg = "Login popup was closed.";
+            } else if (error.code === 'auth/operation-not-allowed') {
+                msg = "Google provider is not enabled in Firebase Authentication settings.";
+            }
+            return { success: false, error: msg };
         }
     };
 
