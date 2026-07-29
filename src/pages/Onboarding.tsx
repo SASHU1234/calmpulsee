@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import { generatePassphrase, savePassphrase } from "../utils/passphrase";
@@ -7,7 +7,7 @@ import { useAuth } from "../components/AuthProvider";
 // ─── Main Onboarding ─────────────────────────────────────────────
 export default function Onboarding() {
     const navigate = useNavigate();
-    const { session, createAnonSession } = useAuth();
+    const { session } = useAuth();
     // Steps: 0=consent, 1=mood, 2=needs
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
