@@ -46,12 +46,12 @@ export default function CopingHub() {
                 </h3>
 
                 <div className="hide-scrollbar" style={{ display: "flex", gap: "16px", overflowX: "auto", paddingRight: "16px", paddingBottom: "8px" }}>
-                    <Link to={`/coping/1`} className="card-interactable" style={{ minWidth: "160px", backgroundColor: "var(--accent-dim)" }}>
+                    <Link to={`/app/coping/1`} className="card-interactable" style={{ minWidth: "160px", backgroundColor: "var(--accent-dim)" }}>
                         <div style={{ fontSize: "32px", marginBottom: "16px" }}>💨</div>
                         <h4 style={{ fontWeight: 500, fontSize: "var(--text-sm)", marginBottom: "4px" }}>Box Breathing</h4>
                         <div className="font-mono" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>4 min</div>
                     </Link>
-                    <Link to={`/coping/3`} className="card-interactable" style={{ minWidth: "160px", backgroundColor: "var(--accent-dim)" }}>
+                    <Link to={`/app/coping/3`} className="card-interactable" style={{ minWidth: "160px", backgroundColor: "var(--accent-dim)" }}>
                         <div style={{ fontSize: "32px", marginBottom: "16px" }}>🧠</div>
                         <h4 style={{ fontWeight: 500, fontSize: "var(--text-sm)", marginBottom: "4px" }}>Cognitive Diffusion</h4>
                         <div className="font-mono" style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>7 min</div>
@@ -85,7 +85,7 @@ export default function CopingHub() {
                         const isDone = completed.includes(e.id);
                         const isFav = favs.includes(e.id);
                         return (
-                            <Link key={e.id} to={`/coping/${e.id}`} className="card-interactable" style={{ padding: "16px", display: "flex", flexDirection: "column", position: "relative" }}>
+                            <Link key={e.id} to={`/app/coping/${e.id}`} className="card-interactable" style={{ padding: "16px", display: "flex", flexDirection: "column", position: "relative" }}>
                                 <button
                                     onClick={(ev) => toggleFav(ev, e.id)}
                                     style={{ position: "absolute", top: "12px", right: "12px", fontSize: "20px", color: isFav ? "var(--danger)" : "var(--text-muted)", filter: isFav ? "drop-shadow(0 0 4px rgba(224,112,112,0.4))" : "none" }}

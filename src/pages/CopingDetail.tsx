@@ -2,18 +2,51 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BackButton from "../components/BackButton";
 
+const EXERCISE_DATA: Record<string, any> = {
+    "1": { title: "Box Breathing", category: "Breathing", duration: "4 min", timeSecs: 240, icon: "💨", steps: [
+        "Breathe in slowly to a count of four.",
+        "Hold your breath to a count of four.",
+        "Breathe out slowly to a count of four.",
+        "Hold your breath again to a count of four.",
+        "Repeat this cycle."
+    ] },
+    "2": { title: "5-4-3-2-1", category: "Grounding", duration: "5 min", timeSecs: 300, icon: "🌍", steps: [
+        "Acknowledge 5 things you can see around you.",
+        "Acknowledge 4 things you can touch around you.",
+        "Acknowledge 3 things you can hear.",
+        "Acknowledge 2 things you can smell.",
+        "Acknowledge 1 thing you can taste."
+    ] },
+    "3": { title: "Cognitive Diffusion", category: "CBT", duration: "7 min", timeSecs: 420, icon: "🧠", steps: [
+        "Notice the thought you are having.",
+        "Say to yourself: 'I am having the thought that...'",
+        "Imagine the thought written on a leaf floating down a stream.",
+        "Let the leaf float away without holding onto it.",
+        "Bring your focus back to the present moment."
+    ] },
+    "4": { title: "Morning Pages", category: "Journaling", duration: "10 min", timeSecs: 600, icon: "✍️", steps: [
+        "Get a notebook and a pen.",
+        "Write exactly what is on your mind.",
+        "Do not censor or edit your thoughts.",
+        "Continue writing until you feel cleared.",
+        "Notice how you feel afterwards."
+    ] }
+};
+
 export default function CopingDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+    
+    const exercise = EXERCISE_DATA[id || "1"] || EXERCISE_DATA["1"];
 
-    const [timer, setTimer] = useState(240); // 4 min default
+    const [timer, setTimer] = useState(exercise.timeSecs);
     const [running, setRunning] = useState(false);
     const [complete, setComplete] = useState(false);
 
     useEffect(() => {
         let interval: any;
         if (running && timer > 0) {
-            interval = setInterval(() => setTimer(t => t - 1), 1000);
+            interval = setInterval(() => setTimer((t: number) => t - 1), 1000);
         } else if (timer === 0 && running) {
             setRunning(false);
             handleComplete();
@@ -34,31 +67,25 @@ export default function CopingDetail() {
         }
     };
 
-    const steps = [
-        "Breathe in slowly to a count of four.",
-        "Hold your breath to a count of four.",
-        "Breathe out slowly to a count of four.",
-        "Hold your breath again to a count of four.",
-        "Repeat this cycle."
-    ];
+    const steps = exercise.steps;
 
     return (
         <div className="page-enter" style={{ padding: "8px 16px 24px", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
             <BackButton label="Coping Hub" onBack={() => navigate("/app/coping")} />
 
             <header style={{ marginTop: "16px", marginBottom: "32px", display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                <div style={{ fontSize: "48px" }}>💨</div>
+                <div style={{ fontSize: "48px" }}>{exercise.icon}</div>
                 <div>
-                    <h1 className="font-display" style={{ fontSize: "var(--text-xl)", marginBottom: "8px" }}>Box Breathing</h1>
+                    <h1 className="font-display" style={{ fontSize: "var(--text-xl)", marginBottom: "8px" }}>{exercise.title}</h1>
                     <div style={{ display: "flex", gap: "6px" }}>
-                        <span className="font-mono" style={{ backgroundColor: "var(--accent-dim)", color: "var(--accent)", padding: "2px 8px", borderRadius: "12px", fontSize: "12px" }}>4 min</span>
-                        <span style={{ fontSize: "12px", color: "var(--text-muted)", padding: "2px 0" }}>Breathing</span>
+                        <span className="font-mono" style={{ backgroundColor: "var(--accent-dim)", color: "var(--accent)", padding: "2px 8px", borderRadius: "12px", fontSize: "12px" }}>{exercise.duration}</span>
+                        <span style={{ fontSize: "12px", color: "var(--text-muted)", padding: "2px 0" }}>{exercise.category}</span>
                     </div>
                 </div>
             </header>
 
             <div className="hide-scrollbar" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px", paddingBottom: "24px" }}>
-                {steps.map((s, i) => (
+                {steps.map((s: string, i: number) => (
                     <div key={i} className="card-base" style={{ display: "flex", gap: "16px", alignItems: "center", padding: "16px" }}>
                         <div className="font-mono" style={{ fontSize: "var(--text-lg)", color: "var(--accent)", width: "24px", textAlign: "center", fontWeight: "bold" }}>{i + 1}</div>
                         <p style={{ fontSize: "var(--text-base)", color: "var(--text)", lineHeight: 1.5 }}>{s}</p>
@@ -70,7 +97,7 @@ export default function CopingDetail() {
                     <div style={{ position: "relative", width: "160px", height: "160px", display: "flex", justifyContent: "center", alignItems: "center" }}>
                         <svg width="160" height="160" viewBox="0 0 160 160" style={{ position: "absolute", top: 0, left: 0, transform: "rotate(-90deg)" }}>
                             <circle cx="80" cy="80" r="76" fill="none" stroke="var(--border)" strokeWidth="4" />
-                            <circle cx="80" cy="80" r="76" fill="none" stroke="var(--accent)" strokeWidth="4" strokeDasharray="477.5" strokeDashoffset={477.5 - (477.5 * (timer / 240))} style={{ transition: "stroke-dashoffset 1s linear" }} />
+                            <circle cx="80" cy="80" r="76" fill="none" stroke="var(--accent)" strokeWidth="4" strokeDasharray="477.5" strokeDashoffset={477.5 - (477.5 * (timer / exercise.timeSecs))} style={{ transition: "stroke-dashoffset 1s linear" }} />
                         </svg>
                         <div className="font-mono" style={{ fontSize: "var(--text-3xl)", color: "var(--accent)" }}>
                             {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, "0")}
@@ -85,7 +112,7 @@ export default function CopingDetail() {
                             {running ? "⏸︎" : "▶︎"}
                         </button>
                         <button
-                            onClick={() => { setRunning(false); setTimer(240); }}
+                            onClick={() => { setRunning(false); setTimer(exercise.timeSecs); }}
                             style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "var(--card)", border: "1px solid var(--border)", color: "var(--text)", display: "flex", justifyContent: "center", alignItems: "center", fontSize: "20px" }}
                         >
                             ⟳
