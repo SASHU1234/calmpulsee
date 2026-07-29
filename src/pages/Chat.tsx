@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { moderateMessage } from "../services/ai";
 import BackButton from "../components/BackButton";
 
 export default function Chat() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [messages, setMessages] = useState([
         { id: 1, text: "Hey! I saw we matched.", sender: "peer", status: "read", time: "10:00 AM" }
     ]);
@@ -45,7 +46,7 @@ export default function Chat() {
     return (
         <div className="page-enter" style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: "var(--bg)" }}>
             <header style={{ padding: "0 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border)", backgroundColor: "var(--surface)", minHeight: "60px" }}>
-                <BackButton fallback="/connect" label="" />
+                <BackButton fallback="/app/connect" label="" onBack={() => navigate("/app/connect")} />
                 <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <h2 className="font-mono" style={{ fontSize: "var(--text-sm)", fontWeight: "bold" }}>Student_{id}</h2>
                     <span className="font-mono" style={{ fontSize: "10px", color: "var(--text-muted)" }}>Anonymous Peer</span>

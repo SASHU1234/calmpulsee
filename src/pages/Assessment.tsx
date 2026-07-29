@@ -180,7 +180,7 @@ export default function Assessment() {
     // Dashboard view
     return (
         <div className="page-enter" style={{ padding: "8px 16px 24px" }}>
-            <BackButton label={previousScreenName} />
+            <BackButton label={previousScreenName} onBack={() => navigate("/app/home")} />
             <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
                 <h1 className="font-display" style={{ fontSize: "var(--text-md)" }}>Assessment</h1>
                 <button style={{ color: "var(--text-muted)" }}>ℹ️</button>

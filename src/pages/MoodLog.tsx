@@ -82,7 +82,7 @@ export default function MoodLog() {
     return (
         <div className="page-enter" style={{ padding: "24px 16px", position: "relative" }}>
             <div style={{ marginBottom: "24px" }}>
-                <BackButton fallback="/app/home" />
+                <BackButton fallback="/app/home" onBack={() => navigate("/app/home")} />
             </div>
 
             <header style={{ marginBottom: "32px" }}>

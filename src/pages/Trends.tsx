@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { detectPattern } from "../services/ai";
 import BackButton from "../components/BackButton";
 import { useNavigationContext } from "../components/NavigationProvider";
 import { useLogs } from "../components/LogsProvider";
 
 export default function Trends() {
+    const navigate = useNavigate();
     const { previousScreenName } = useNavigationContext();
     const { logs, isLoading } = useLogs();
     const [range, setRange] = useState("30D");
@@ -29,7 +31,7 @@ export default function Trends() {
     if (logs.length === 0) {
         return (
             <div className="page-enter" style={{ padding: "8px 16px 24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "80vh", textAlign: "center", position: "relative" }}>
-                <div style={{ position: "absolute", top: 16, left: 16 }}><BackButton label={previousScreenName} /></div>
+                <div style={{ position: "absolute", top: 16, left: 16 }}><BackButton label={previousScreenName} onBack={() => navigate("/app/home")} /></div>
                 <div style={{ fontSize: "48px", marginBottom: "16px", color: "var(--text-muted)" }}>📈</div>
                 <h1 className="font-display" style={{ fontSize: "var(--text-xl)", marginBottom: "8px" }}>Your story starts here.</h1>
                 <p style={{ color: "var(--text-muted)", fontSize: "var(--text-sm)" }}>Log your first mood to start seeing patterns.</p>
@@ -39,7 +41,7 @@ export default function Trends() {
 
     return (
         <div className="page-enter" style={{ padding: "8px 0 24px" }}>
-            <div style={{ padding: "0 16px" }}><BackButton label={previousScreenName} /></div>
+            <div style={{ padding: "0 16px" }}><BackButton label={previousScreenName} onBack={() => navigate("/app/home")} /></div>
             <header style={{ padding: "0 16px", marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                 <div>
                     <h1 className="font-display" style={{ fontSize: "var(--text-2xl)", marginBottom: "4px" }}>Your story.</h1>
